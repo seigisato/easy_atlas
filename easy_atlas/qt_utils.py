@@ -1,8 +1,9 @@
 from maya import OpenMayaUI as omui  # @UnresolvedImport
-from PySide.QtCore import * 
-from PySide.QtGui import *
-from PySide.QtUiTools import *
-from shiboken import wrapInstance
+from PySide2.QtCore import * 
+from PySide2.QtGui import *
+from PySide2.QtUiTools import *
+from PySide2.QtWidgets import *
+from shiboken2 import wrapInstance
 import maya.cmds as cmds
 
 class RawWidget:
