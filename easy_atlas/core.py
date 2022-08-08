@@ -248,6 +248,7 @@ class EasyAtlas():
 
         photoshopLineEdit = qt_utils.getControl(qt_utils.RawWidget("EAprefPhotoshopPath", QLineEdit))
         pickButton = qt_utils.getControl(qt_utils.RawWidget("EApickPhotoshopPath", QPushButton))
+        resampleComboBox = qt_utils.getControl(qt_utils.RawWidget("EAresampleOptions", QComboBox))
         saveButton = qt_utils.getControl(qt_utils.RawWidget("EAsavePref", QPushButton))
         cancelButton = qt_utils.getControl(qt_utils.RawWidget("EAcancelPref", QPushButton))
 
@@ -257,6 +258,9 @@ class EasyAtlas():
 
         photoshopPath = utils.INIHandler.load_info(self._configFile, "photoshopDir")
         photoshopLineEdit.setText(photoshopPath)
+
+        currentResampleMode = utils.INIHandler.load_info(self._configFile, "resampleMode")
+        resampleComboBox.setCurrentIndex(ResamplingModeValues.index(currentResampleMode))
 
         prefWindow.show()
 
@@ -272,6 +276,12 @@ class EasyAtlas():
         # Photoshop Path
         photoshopLineEdit = qt_utils.getControl(qt_utils.RawWidget("EAprefPhotoshopPath", QLineEdit))
         utils.INIHandler.save_info(self._configFile, "photoshopDir", photoshopLineEdit.text())
+        
+        # Resampling Mode
+        resamplingMode = qt_utils.getControl(qt_utils.RawWidget("EAresampleOptions", QComboBox))
+        resampleConfig = ResamplingExportValues.get(resamplingMode.currentText(), "automatic")
+        utils.INIHandler.save_info(self._configFile, "resampleMode", resampleConfig)
+        
         window.close()
 
     def updateAtlasInfoFromMeshTableChange(self):
@@ -707,6 +717,9 @@ class EasyAtlas():
         outputSizeX = int(qt_utils.getControl(self._tOutputWidth).text())
         outputSizeY = int(qt_utils.getControl(self._tOutputHeight).text())
         
+        # Resampling Mode
+        resamplingMode = utils.INIHandler.load_info(self._configFile, "resampleMode")
+
         # Check that output file extension is valid
         if not os.path.splitext(txtFinalFilename)[1] in [".jpg", ".png", ".tga", ".psd"]:
             cmds.confirmDialog(t=diaWarning, message="Output file type not supported by Easy Atlas.\n Supported types are jpg, png, tga and psd.", button=["ok"])  # @UndefinedVariable

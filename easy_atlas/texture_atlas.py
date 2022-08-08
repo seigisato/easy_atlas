@@ -2,6 +2,7 @@ import maya.cmds as cmds
 import subprocess, os
 import socket
 import threading
+from .EAGlobals import ResamplingModeValues
 
 PSScript = """var args = "ITEMLIST"
 var argList = args.split(",")
@@ -16,6 +17,40 @@ var TCP_PORT = parseInt(argList.shift())
 var fileName = (argList.shift()).replace("/", "\\\\")
 var outputSizeX = parseInt(argList.shift())
 var outputSizeY = parseInt(argList.shift())
+var resamplingInt = parseInt(argList.shift())
+var resamplingMode;
+
+switch (resamplingInt) {
+    case 1:
+        resamplingMode = ResampleMethod.NONE;
+        break;
+    case 2:
+        resamplingMode = ResampleMethod.NEARESTNEIGHBOR;
+        break;
+    case 3:
+        resamplingMode = ResampleMethod.BILINEAR;
+        break;
+    case 4:
+        resamplingMode = ResampleMethod.BICUBIC;
+        break;
+    case 5:
+        resamplingMode = ResampleMethod.BICUBICSHARPER;
+        break; 
+    case 6:
+        resamplingMode = ResampleMethod.BICUBICSMOOTHER;
+        break;
+    case 7:
+        resamplingMode = ResampleMethod.BICUBICAUTOMATIC;
+        break;
+    case 8:
+        resamplingMode = ResampleMethod.AUTOMATIC;
+        break;
+    case 9:
+        resamplingMode = ResampleMethod.PRESERVEDETAILS;
+        break;
+    default:
+        resamplingMode = ResampleMethod.AUTOMATIC;
+}
 
 function MoveLayerTo(fLayer, refPosX, refPosY, fX, fY) {
 
@@ -82,7 +117,7 @@ for (i=0; i<argList.length; i+=5) {
     layerName = filename.split("/").pop()
     layerName = layerName.substr(0,layerName.lastIndexOf("."))
 
-    docTemp.resizeImage(sizeX, sizeY, docTemp.resolution, ResampleMethod.NEARESTNEIGHBOR)
+    docTemp.resizeImage(sizeX, sizeY, docTemp.resolution, resamplingMode)
     docTemp.crop([0, 0, sizeX, sizeY])
     docTemp.channels.add() // <--------- WORKAROUND
     
@@ -259,15 +294,19 @@ def waitForPSConfirmation(s, TCP_PORT):
         #conn.send(data)
     conn.close()
 
-def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath):
+
+
+def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath, resamplingMode):
     '''Send information to Photoshop to create texture atlas.'''
 
     if not os.path.exists(photoshopPath):
         cmds.confirmDialog(message="Photoshop path does not exist.", button=["ok"])  # @UndefinedVariable
         return
-    
-    commandList = [txtFinalFilename, sizeX, sizeY]
-    
+
+    resampleMode = ResamplingModeValues.index(resamplingMode) + 1
+
+    commandList = [txtFinalFilename, sizeX, sizeY, resampleMode]
+
     for k in aItems:
 
         kPosX = int(sizeX * k.posX)
