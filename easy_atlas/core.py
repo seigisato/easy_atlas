@@ -720,7 +720,7 @@ class EasyAtlas():
 
         # Now the script
         atlasItems = []
-        txtFinalFilename = qt_utils.getControl(self._tFileOutput).text().lower()
+        txtFinalFilename = qt_utils.getControl(self._tFileOutput).text()
         outputSizeX = int(qt_utils.getControl(self._tOutputWidth).text())
         outputSizeY = int(qt_utils.getControl(self._tOutputHeight).text())
 
