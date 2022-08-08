@@ -1,4 +1,4 @@
-from PySide2.QtCore import * 
+from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtUiTools import *
 from PySide2.QtWidgets import *
@@ -9,6 +9,7 @@ from . import uv_atlas          # @UnresolvedImport
 from . import texture_atlas     # @UnresolvedImport
 from . import qt_utils          # @UnresolvedImport
 from . import utils             # @UnresolvedImport
+from .EAGlobals import *
 
 class AtlasItem:
     '''This class is used to help organize the atlas output data.'''
@@ -133,10 +134,11 @@ class AtlasMesh:
 
 class EasyAtlas():
     '''This class creates the Easy Atlas interface and handles the human interaction.'''
-    windowName              = "EasyAtlasWindow"
-    prefWindowName          = "EAprefWindow"
+
+    windowName              = WindowName
+    prefWindowName          = PrefWindowName
     windowUI                = None
-    dockName                = "EasyAtlas"
+    dockName                = DockName
     suspendUpdate           = False
     suspendCellChangeSignal = False
     AtlasInfo               = None
@@ -248,7 +250,7 @@ class EasyAtlas():
         pickButton = qt_utils.getControl(qt_utils.RawWidget("EApickPhotoshopPath", QPushButton))
         saveButton = qt_utils.getControl(qt_utils.RawWidget("EAsavePref", QPushButton))
         cancelButton = qt_utils.getControl(qt_utils.RawWidget("EAcancelPref", QPushButton))
-        
+
         cancelButton.clicked.connect(lambda: prefWindow.close())
         pickButton.clicked.connect(lambda: self.pickPhotoshopPath())
         saveButton.clicked.connect(lambda: self.savePreferences(prefWindow))
@@ -346,7 +348,7 @@ class EasyAtlas():
             selectedCoord = [k.row(), k.column()]
             selectedCoords.append(selectedCoord)
             if selectedCoord in allTakenCoords:
-                cmds.confirmDialog(t="Warning", message="Cannot overlap Atlas region.", button=["ok"])  # @UndefinedVariable
+                cmds.confirmDialog(t=diaWarning, message="Cannot overlap Atlas region.", button=["ok"])  # @UndefinedVariable
                 return
 
         # Find unique atlas id
@@ -479,7 +481,7 @@ class EasyAtlas():
 
         meshes = cmds.ls(sl=True, l=True)  # @UndefinedVariable
         if not meshes:
-            cmds.confirmDialog(t="Warning", message="At least one mesh must be selected for adding.", button=["ok"])  # @UndefinedVariable
+            cmds.confirmDialog(t=diaWarning, message="At least one mesh must be selected for adding.", button=["ok"])  # @UndefinedVariable
             return
 
         for k in meshes:
@@ -504,11 +506,11 @@ class EasyAtlas():
 
         meshes = cmds.ls(sl=True, l=True)  # @UndefinedVariable
         if not meshes:
-            cmds.confirmDialog(t="Warning", message="A mesh must be selected for adding.", button=["ok"])  # @UndefinedVariable
+            cmds.confirmDialog(t=diaWarning, message="A mesh must be selected for adding.", button=["ok"])  # @UndefinedVariable
             return
 
         if len(meshes) > 1:
-            cmds.confirmDialog(t="Warning", message="Please select only one mesh at a time.", button=["ok"])  # @UndefinedVariable
+            cmds.confirmDialog(t=diaWarning, message="Please select only one mesh at a time.", button=["ok"])  # @UndefinedVariable
             return
 
         self.addMesh()
@@ -687,8 +689,8 @@ class EasyAtlas():
         # Make sure Photoshop path is set up
         photoshopPath = utils.INIHandler.load_info(self._configFile, "photoshop")
         if not photoshopPath:
-            setUpPS = cmds.confirmDialog(t="Warning", message="Photoshop path missing. Do you want to pick a Photoshop path now?", button=["Yes", "No"], defaultButton='Yes', cancelButton='No', dismissString='No')  # @UndefinedVariable
-            
+            setUpPS = cmds.confirmDialog(t=diaWarning, message="Photoshop path missing. Do you want to pick a Photoshop path now?", button=["Yes", "No"], defaultButton='Yes', cancelButton='No', dismissString='No')  # @UndefinedVariable
+
             if setUpPS == "No":
                 return
 
@@ -707,7 +709,7 @@ class EasyAtlas():
         
         # Check that output file extension is valid
         if not os.path.splitext(txtFinalFilename)[1] in [".jpg", ".png", ".tga", ".psd"]:
-            cmds.confirmDialog(t="Warning", message="Output file type not supported by Easy Atlas.\n Supported types are jpg, png, tga and psd.", button=["ok"])  # @UndefinedVariable
+            cmds.confirmDialog(t=diaWarning, message="Output file type not supported by Easy Atlas.\n Supported types are jpg, png, tga and psd.", button=["ok"])  # @UndefinedVariable
             return
 
         for mesh in self.AtlasInfo.listOfAtlasMeshes:
@@ -721,22 +723,22 @@ class EasyAtlas():
                 atlasItems.append(aItem)
 
                 if not os.path.exists(mesh.texture):
-                    cmds.confirmDialog(t="Warning", message="Input texture doesn't exist: \n%s." % mesh.texture, button=["ok"])  # @UndefinedVariable
+                    cmds.confirmDialog(t=diaWarning, message="Input texture doesn't exist: \n%s." % mesh.texture, button=["ok"])  # @UndefinedVariable
                     return
 
                 # Make sure the mesh has a valid maya name (names that use non-standard characters break maya)
                 try:
                     cmds.ls(mesh.meshName)  # @UndefinedVariable
                 except:
-                    cmds.confirmDialog(t="Warning", message="Invalid mesh name: \n%s." % (mesh.meshName), button=["ok"])  # @UndefinedVariable
+                    cmds.confirmDialog(t=diaWarning, message="Invalid mesh name: \n%s." % (mesh.meshName), button=["ok"])  # @UndefinedVariable
                     return
 
                 if not cmds.ls(mesh.meshName):  # @UndefinedVariable
-                    cmds.confirmDialog(t="Warning", message="Mesh doesn't exist: \n%s." % mesh.meshName, button=["ok"])  # @UndefinedVariable
+                    cmds.confirmDialog(t=diaWarning, message="Mesh doesn't exist: \n%s." % mesh.meshName, button=["ok"])  # @UndefinedVariable
                     return
 
         if not atlasItems:
-            cmds.confirmDialog(t="Warning", message="No item has been assignet to the Atlas.", button=["ok"])  # @UndefinedVariable
+            cmds.confirmDialog(t=diaWarning, message="No item has been assignet to the Atlas.", button=["ok"])  # @UndefinedVariable
             return
 
         texture_atlas.createAtlas(atlasItems, txtFinalFilename, int(outputSizeX), int(outputSizeY), photoshopPath, resamplingMode)
