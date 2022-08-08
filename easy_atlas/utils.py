@@ -13,7 +13,7 @@ class INIHandler:
             debug: boolean for printing debug information in the script editor
         '''
         
-        configFilename = os.environ['TMPDIR']+"/"+_file
+        configFilename = _file.replace("\\\\", "/")
         
         config = ConfigParser.RawConfigParser()
         config.read(configFilename)
@@ -38,7 +38,8 @@ class INIHandler:
             debug: boolean for printing debug information in the script editor
         '''
         
-        configFilename = os.environ['TMPDIR']+"/"+_file
+        configFilename = os.path.abspath(_file)
+        configDirectory = os.path.dirname(configFilename)
         
         config = ConfigParser.RawConfigParser()
         config.read(configFilename)
@@ -47,8 +48,11 @@ class INIHandler:
         except:
             pass
         config.set('ROOT', option, info)
-        
-        with open(configFilename, 'wb') as configfile:
+
+        if not os.path.exists(configDirectory):
+            os.makedirs(configDirectory)
+
+        with open(configFilename, 'w+b') as configfile:
             config.write(configfile)
 
         if debug: print configFilename

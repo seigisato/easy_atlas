@@ -161,7 +161,7 @@ class EasyAtlas():
     _aPrefs                 = qt_utils.RawWidget("EApreferences", QAction)
     _aAddEAtoShelf          = qt_utils.RawWidget("EAaddEAtoShelf", QAction)
     _aAbout                 = qt_utils.RawWidget("EAAbout", QAction)
-    _configFile             = "UVnTextureAtlasMaker.cfg"
+    _configFile             = ("%s/config/EasyAtlas.cfg" % os.path.dirname(__file__))
     _uiFile                 = ("%s/ui/easy_atlas.ui" % os.path.dirname(__file__))
     _uiPrefsFile            = ("%s/ui/prefs.ui" % os.path.dirname(__file__))
     _easyAtlasImage         = ("%s/img/easy_atlas.png" % os.path.dirname(__file__))
@@ -254,8 +254,8 @@ class EasyAtlas():
         cancelButton.clicked.connect(lambda: prefWindow.close())
         pickButton.clicked.connect(lambda: self.pickPhotoshopPath())
         saveButton.clicked.connect(lambda: self.savePreferences(prefWindow))
-        photoshopPath = utils.INIHandler.load_info(self._configFile, "photoshop")
 
+        photoshopPath = utils.INIHandler.load_info(self._configFile, "photoshopDir")
         photoshopLineEdit.setText(photoshopPath)
 
         prefWindow.show()
@@ -271,7 +271,7 @@ class EasyAtlas():
     def savePreferences(self, window):
         # Photoshop Path
         photoshopLineEdit = qt_utils.getControl(qt_utils.RawWidget("EAprefPhotoshopPath", QLineEdit))
-        utils.INIHandler.save_info(self._configFile, "photoshop", photoshopLineEdit.text())
+        utils.INIHandler.save_info(self._configFile, "photoshopDir", photoshopLineEdit.text())
         window.close()
 
     def updateAtlasInfoFromMeshTableChange(self):
@@ -687,7 +687,7 @@ class EasyAtlas():
         self.updateAtlasInfoFromMeshTableChange()
 
         # Make sure Photoshop path is set up
-        photoshopPath = utils.INIHandler.load_info(self._configFile, "photoshop")
+        photoshopPath = utils.INIHandler.load_info(self._configFile, "photoshopDir")
         if not photoshopPath:
             setUpPS = cmds.confirmDialog(t=diaWarning, message="Photoshop path missing. Do you want to pick a Photoshop path now?", button=["Yes", "No"], defaultButton='Yes', cancelButton='No', dismissString='No')  # @UndefinedVariable
 
@@ -697,7 +697,7 @@ class EasyAtlas():
             else:
                 photoshopPath = cmds.fileDialog(m=0, dm='c:/*.exe')  # @UndefinedVariable
                 if os.path.exists(photoshopPath):
-                    utils.INIHandler.save_info(self._configFile, "photoshop", photoshopPath)
+                    utils.INIHandler.save_info(self._configFile, "photoshopDir", photoshopPath)
                 else:
                     return
 
