@@ -2,7 +2,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 
 def createAtlas(aItems):
-    '''Create UV atlas.'''
+    """Create UV atlas."""
     
     mel.eval('scriptEditorInfo -e -suppressWarnings true;')  # @UndefinedVariable
        

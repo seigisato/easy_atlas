@@ -12,7 +12,7 @@ from . import utils             # @UnresolvedImport
 from .EAGlobals import *
 
 class AtlasItem:
-    '''This class is used to help organize the atlas output data.'''
+    """This class is used to help organize the atlas output data."""
 
     def __init__ (self, mesh, file, posX, posY, sizeX, sizeY):
         self.mesh = mesh
@@ -23,7 +23,7 @@ class AtlasItem:
         self.sizeY = sizeY
 
 class Atlas:
-    '''This class holds the main data while an atlas is being created.'''
+    """This class holds the main data while an atlas is being created."""
 
     __EAAtlasFile = "EApresetFile"
 
@@ -110,7 +110,7 @@ class Atlas:
                 utils.INIHandler.save_info(self.__EAAtlasFile, "dir", os.path.dirname(file))
 
 class AtlasMesh:
-    '''An instance of this class will have all the information about an individual mesh.'''
+    """An instance of this class will have all the information about an individual mesh."""
 
     meshName = ""
     texture = ""
@@ -133,7 +133,7 @@ class AtlasMesh:
         self.coords = []
 
 class EasyAtlas():
-    '''This class creates the Easy Atlas interface and handles the human interaction.'''
+    """This class creates the Easy Atlas interface and handles the human interaction."""
 
     windowName              = WindowName
     prefWindowName          = PrefWindowName
@@ -170,7 +170,6 @@ class EasyAtlas():
     _color                  = _colorList[random.randint(0, len(_colorList)-1)]
 
     def __init__(self):
-
         # Shuffle colors
         random.shuffle(self._colorList)
 
@@ -285,13 +284,11 @@ class EasyAtlas():
         window.close()
 
     def updateAtlasInfoFromMeshTableChange(self):
-
         if self.suspendCellChangeSignal:
             return
 
         row = 0
         for k in self.AtlasInfo.listOfAtlasMeshes:
-
             assert isinstance(k, AtlasMesh)
             tableMeshes = qt_utils.getControl(self._meshTable)
             k.meshName = tableMeshes.item(row, 1).text()
@@ -406,10 +403,10 @@ class EasyAtlas():
             utils.INIHandler.save_info(self._configFile, "loadTextureDir", dir)
 
     def resizeAtlasTable(self, resetItems=True):
-        '''Rezises the table.
+        """Rezises the table.
 
         Clear id, color and coords info from meshes.
-        '''
+        """
 
         table = qt_utils.getControl(self._atlasTable)
         tRowcount = qt_utils.getControl(self._tRowCount)
@@ -771,7 +768,7 @@ class EasyAtlas():
         cmds.select(meshes) # @UndefinedVariable
 
 def launch():
-    '''Method for launching the Easy Atlas interface.'''
+    """Method for launching the Easy Atlas interface."""
 
     EA = EasyAtlas()
 

@@ -4,6 +4,7 @@ import socket
 import threading
 from .EAGlobals import ResamplingModeValues
 
+# This is the JS script that will be sent to Photoshop to be executed.
 PSScript = """var args = "ITEMLIST"
 var argList = args.split(",")
 
@@ -268,8 +269,7 @@ preferences.typeUnits = oldTypeUnits
 
 
 def getFreeSocket():
-    '''Get a free socket.'''
-
+    """Get a free socket."""
     TCP_IP = '127.0.0.1'
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((TCP_IP, 0))
@@ -277,9 +277,13 @@ def getFreeSocket():
     s.listen(1)
     return s, TCP_PORT
 
-def waitForPSConfirmation(s, TCP_PORT):
-    '''Method that will be added to a thread that waits for Photoshop connection.'''
 
+def waitForPSConfirmation(s, TCP_PORT):
+    """
+    Method that will be added to a thread that waits for Photoshop connection.
+
+    :param s: socket
+    """
     BUFFER_SIZE = 1024
 
     conn, addr = s.accept()
@@ -295,9 +299,8 @@ def waitForPSConfirmation(s, TCP_PORT):
     conn.close()
 
 
-
 def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath, resamplingMode):
-    '''Send information to Photoshop to create texture atlas.'''
+    """Send information to Photoshop to create texture atlas."""
 
     if not os.path.exists(photoshopPath):
         cmds.confirmDialog(message="Photoshop path does not exist.", button=["ok"])  # @UndefinedVariable
@@ -316,7 +319,6 @@ def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath, resampli
 
         commandList.extend([k.file, kPosX, kPosY, kSizeX, kSizeY])
 
-
     # Setup thread to wait for Photoshop response - STEP 1
     s, TCP_PORT = getFreeSocket()
     commandList.insert(0, TCP_PORT)
@@ -332,6 +334,7 @@ def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath, resampli
     
     scriptFile = (os.path.dirname(__file__)+"/EAscript.jsx").replace("/", "\\")
     with open(scriptFile, "w") as script:
+        script.write("/* GENERATED JAVASCRIPT FILE. DO NOT EDIT. */")
         script.write(PSscriptOutput)
     
     subprocess.Popen((photoshopPath, scriptFile))

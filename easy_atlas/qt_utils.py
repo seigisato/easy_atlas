@@ -7,14 +7,14 @@ from shiboken2 import wrapInstance
 import maya.cmds as cmds
 
 class RawWidget:
-    '''Auxiliary class that is used to grab widgets.'''
+    """Auxiliary class that is used to grab widgets."""
     
     def __init__(self, name, type):
         self.name = name
         self.type = type
 
 def loadQtWindow(uiFile, windowName):
-    '''Auxiliary method that loads .ui files under main Maya window.'''
+    """Auxiliary method that loads .ui files under main Maya window."""
 
     # Delete previously loaded UI
     if (cmds.window(windowName, exists=True)):  # @UndefinedVariable
@@ -36,7 +36,7 @@ def loadQtWindow(uiFile, windowName):
     return windowUI
     
 def getControl(rawWidget):
-    '''Auxiliary method to grab a widget.'''
+    """Auxiliary method to grab a widget."""
     
     ptr = None
     if rawWidget.type == QAction:
