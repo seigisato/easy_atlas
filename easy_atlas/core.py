@@ -718,8 +718,8 @@ class EasyAtlas():
         resamplingMode = utils.INIHandler.load_info(self._configFile, "resampleMode")
 
         # Check that output file extension is valid
-        if not os.path.splitext(txtFinalFilename)[1] in [".jpg", ".png", ".tga", ".psd"]:
-            cmds.confirmDialog(t=diaWarning, message="Output file type not supported by Easy Atlas.\n Supported types are jpg, png, tga and psd.", button=["ok"])  # @UndefinedVariable
+        if not os.path.splitext(txtFinalFilename)[1] in SupportedFileExtensions:
+            cmds.confirmDialog(t=diaWarning, message="Output file type not supported by Easy Atlas.\n Supported types are {}".format(SupportedFileExtensions), button=["ok"])  # @UndefinedVariable
             return
 
         for mesh in self.AtlasInfo.listOfAtlasMeshes:

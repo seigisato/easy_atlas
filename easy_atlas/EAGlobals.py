@@ -12,6 +12,8 @@ DockName = "EasyAtlas"
 
 diaWarning = "Warning"
 
+SupportedFileExtensions = [".jpg", ".png", ".tga", ".psd"]
+
 
 """
 Resampling Modes
