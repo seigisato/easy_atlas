@@ -276,6 +276,9 @@ class EasyAtlas():
         photoshopLineEdit.setText(photoshopPath)
 
         currentResampleMode = utils.INIHandler.load_info(self._configFile, "resampleMode")
+        if not currentResampleMode:
+            # If we don't have a resample mode defined, let's just resort to automatic by default.
+            currentResampleMode = 'automatic'
         resampleComboBox.setCurrentIndex(ResamplingModeValues.index(currentResampleMode))
         prefWindow.show()
 
