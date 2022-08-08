@@ -5,7 +5,8 @@ import threading
 from .EAGlobals import ResamplingModeValues
 
 # This is the JS script that will be sent to Photoshop to be executed.
-PSScript = """var args = "ITEMLIST"
+PSScript = """
+var args = "ITEMLIST"
 var argList = args.split(",")
 
 var oldRulerUnits = preferences.rulerUnits;
@@ -187,7 +188,7 @@ for (i=0; i<argList.length; i+=5) {
             outputDoc.selection.copy()
             outputDoc.selection.deselect()
             outputDoc.activeChannels = [outputAlphaChannel]
-            selectedRegion = Array(Array(LB[0].value,LB[1].value),Array(LB[2].value,LB[1].value),Array(LB[2].value,LB[ 3].value),Array(LB[0].value,LB[3].value))
+            selectedRegion = Array(Array(LB[0].value,LB[1].value),Array(LB[2].value,LB[1].value),Array(LB[2].value,LB[3].value),Array(LB[0].value,LB[3].value))
             outputDoc.selection.select(selectedRegion)
             outputDoc.paste(true)
             outputDoc.activeChannels = [outputDoc.channels[0], outputDoc.channels[1], outputDoc.channels[2]]
@@ -293,17 +294,17 @@ def waitForPSConfirmation(s, TCP_PORT):
             break
         if data == str(TCP_PORT):
             refreshTextures = """string $fileNodes[]  = `ls -type file`;for($f in $fileNodes) {string $attrName = $f + ".fileTextureName";string $fileName = `getAttr $attrName`;setAttr -type "string" $attrName $fileName;}"""
-            cmds.evalDeferred('import maya.mel as mel;mel.eval(\'%s\')' % refreshTextures)  # @UndefinedVariable
+            cmds.evalDeferred('import maya.mel as mel;mel.eval(\'%s\')' % refreshTextures)
 
         #conn.send(data)
     conn.close()
 
 
-def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath, resamplingMode):
+def createAtlas(aItems, txtFinalFilename, sizeX, sizeY, photoshopPath, resamplingMode):
     """Send information to Photoshop to create texture atlas."""
 
     if not os.path.exists(photoshopPath):
-        cmds.confirmDialog(message="Photoshop path does not exist.", button=["ok"])  # @UndefinedVariable
+        cmds.confirmDialog(message = "Photoshop path does not exist.", button = ["ok"])
         return
 
     resampleMode = ResamplingModeValues.index(resamplingMode) + 1
@@ -311,7 +312,6 @@ def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath, resampli
     commandList = [txtFinalFilename, sizeX, sizeY, resampleMode]
 
     for k in aItems:
-
         kPosX = int(sizeX * k.posX)
         kPosY = int(sizeY * k.posY)
         kSizeX = int(sizeX * k.sizeX)
@@ -323,7 +323,7 @@ def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath, resampli
     s, TCP_PORT = getFreeSocket()
     commandList.insert(0, TCP_PORT)
 
-    t = threading.Thread(target=waitForPSConfirmation, args=(s, TCP_PORT))
+    t = threading.Thread(target = waitForPSConfirmation, args = (s, TCP_PORT))
     threads = []
     threads.append(t)
     t.start()
@@ -331,10 +331,10 @@ def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath, resampli
     # Send job to Photoshop
     commandString = (','.join(map(str, commandList))).replace("\\", "/")
     PSscriptOutput = PSScript.replace("ITEMLIST", commandString)
-    
-    scriptFile = (os.path.dirname(__file__)+"/EAscript.jsx").replace("/", "\\")
+
+    scriptFile = (os.path.dirname(__file__) + "/EAscript.jsx").replace("/", "\\")
     with open(scriptFile, "w") as script:
         script.write("/* GENERATED JAVASCRIPT FILE. DO NOT EDIT. */")
         script.write(PSscriptOutput)
-    
+
     subprocess.Popen((photoshopPath, scriptFile))

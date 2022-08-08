@@ -6,14 +6,13 @@ Holds global constants for the script.
 """
 General
 """
-WindowName =  "EasyAtlasWindow"
+WindowName = "EasyAtlasWindow"
 PrefWindowName = "EAprefWindow"
 DockName = "EasyAtlas"
 
 diaWarning = "Warning"
 
 SupportedFileExtensions = [".jpg", ".png", ".tga", ".psd"]
-
 
 """
 Resampling Modes
