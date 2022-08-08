@@ -748,7 +748,7 @@ class EasyAtlas():
                     return
 
         if not atlasItems:
-            cmds.confirmDialog(t=diaWarning, message="No item has been assignet to the Atlas.", button=["ok"])  # @UndefinedVariable
+            cmds.confirmDialog(t=diaWarning, message="No item has been assigned to the Atlas.", button=["ok"])  # @UndefinedVariable
             return
 
         texture_atlas.createAtlas(atlasItems, txtFinalFilename, int(outputSizeX), int(outputSizeY), photoshopPath, resamplingMode)
