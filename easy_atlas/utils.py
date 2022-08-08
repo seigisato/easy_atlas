@@ -50,5 +50,5 @@ class INIHandler:
         
         with open(configFilename, 'wb') as configfile:
             config.write(configfile)
-            
+
         if debug: print configFilename

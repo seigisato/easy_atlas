@@ -230,10 +230,11 @@ if (saveOptions != null) {
 preferences.rulerUnits = oldRulerUnits
 preferences.typeUnits = oldTypeUnits
 """
-        
+
+
 def getFreeSocket():
     '''Get a free socket.'''
-    
+
     TCP_IP = '127.0.0.1'
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((TCP_IP, 0))
@@ -243,9 +244,9 @@ def getFreeSocket():
 
 def waitForPSConfirmation(s, TCP_PORT):
     '''Method that will be added to a thread that waits for Photoshop connection.'''
-    
+
     BUFFER_SIZE = 1024
-    
+
     conn, addr = s.accept()
     while 1:
         data = conn.recv(BUFFER_SIZE)
@@ -254,13 +255,13 @@ def waitForPSConfirmation(s, TCP_PORT):
         if data == str(TCP_PORT):
             refreshTextures = """string $fileNodes[]  = `ls -type file`;for($f in $fileNodes) {string $attrName = $f + ".fileTextureName";string $fileName = `getAttr $attrName`;setAttr -type "string" $attrName $fileName;}"""
             cmds.evalDeferred('import maya.mel as mel;mel.eval(\'%s\')' % refreshTextures)  # @UndefinedVariable
-            
+
         #conn.send(data)
     conn.close()
 
 def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath):
     '''Send information to Photoshop to create texture atlas.'''
-    
+
     if not os.path.exists(photoshopPath):
         cmds.confirmDialog(message="Photoshop path does not exist.", button=["ok"])  # @UndefinedVariable
         return
@@ -268,24 +269,24 @@ def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath):
     commandList = [txtFinalFilename, sizeX, sizeY]
     
     for k in aItems:
-        
+
         kPosX = int(sizeX * k.posX)
         kPosY = int(sizeY * k.posY)
         kSizeX = int(sizeX * k.sizeX)
         kSizeY = int(sizeY * k.sizeY)
-        
+
         commandList.extend([k.file, kPosX, kPosY, kSizeX, kSizeY])
-    
-    
+
+
     # Setup thread to wait for Photoshop response - STEP 1
     s, TCP_PORT = getFreeSocket()
     commandList.insert(0, TCP_PORT)
-    
+
     t = threading.Thread(target=waitForPSConfirmation, args=(s, TCP_PORT))
     threads = []
     threads.append(t)
     t.start()
-    
+
     # Send job to Photoshop
     commandString = (','.join(map(str, commandList))).replace("\\", "/")
     PSscriptOutput = PSScript.replace("ITEMLIST", commandString)
