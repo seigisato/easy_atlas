@@ -1,0 +1,7 @@
+.idea
+.qt_for_python
+.vscode
+*.pyc
+test/
+*.mb
+*.jsx

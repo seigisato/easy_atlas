@@ -2,8 +2,11 @@ import maya.cmds as cmds
 import subprocess, os
 import socket
 import threading
+from .EAGlobals import ResamplingModeValues
 
-PSScript = """var args = "ITEMLIST"
+# This is the JS script that will be sent to Photoshop to be executed.
+PSScript = """
+var args = "ITEMLIST"
 var argList = args.split(",")
 
 var oldRulerUnits = preferences.rulerUnits;
@@ -16,6 +19,40 @@ var TCP_PORT = parseInt(argList.shift())
 var fileName = (argList.shift()).replace("/", "\\\\")
 var outputSizeX = parseInt(argList.shift())
 var outputSizeY = parseInt(argList.shift())
+var resamplingInt = parseInt(argList.shift())
+var resamplingMode;
+
+switch (resamplingInt) {
+    case 1:
+        resamplingMode = ResampleMethod.NONE;
+        break;
+    case 2:
+        resamplingMode = ResampleMethod.NEARESTNEIGHBOR;
+        break;
+    case 3:
+        resamplingMode = ResampleMethod.BILINEAR;
+        break;
+    case 4:
+        resamplingMode = ResampleMethod.BICUBIC;
+        break;
+    case 5:
+        resamplingMode = ResampleMethod.BICUBICSHARPER;
+        break; 
+    case 6:
+        resamplingMode = ResampleMethod.BICUBICSMOOTHER;
+        break;
+    case 7:
+        resamplingMode = ResampleMethod.BICUBICAUTOMATIC;
+        break;
+    case 8:
+        resamplingMode = ResampleMethod.AUTOMATIC;
+        break;
+    case 9:
+        resamplingMode = ResampleMethod.PRESERVEDETAILS;
+        break;
+    default:
+        resamplingMode = ResampleMethod.AUTOMATIC;
+}
 
 function MoveLayerTo(fLayer, refPosX, refPosY, fX, fY) {
 
@@ -82,7 +119,7 @@ for (i=0; i<argList.length; i+=5) {
     layerName = filename.split("/").pop()
     layerName = layerName.substr(0,layerName.lastIndexOf("."))
 
-    docTemp.resizeImage(sizeX, sizeY, docTemp.resolution, ResampleMethod.NEARESTNEIGHBOR)
+    docTemp.resizeImage(sizeX, sizeY, docTemp.resolution, resamplingMode)
     docTemp.crop([0, 0, sizeX, sizeY])
     docTemp.channels.add() // <--------- WORKAROUND
     
@@ -151,7 +188,7 @@ for (i=0; i<argList.length; i+=5) {
             outputDoc.selection.copy()
             outputDoc.selection.deselect()
             outputDoc.activeChannels = [outputAlphaChannel]
-            selectedRegion = Array(Array(LB[0].value,LB[1].value),Array(LB[2].value,LB[1].value),Array(LB[2].value,LB[ 3].value),Array(LB[0].value,LB[3].value))
+            selectedRegion = Array(Array(LB[0].value,LB[1].value),Array(LB[2].value,LB[1].value),Array(LB[2].value,LB[3].value),Array(LB[0].value,LB[3].value))
             outputDoc.selection.select(selectedRegion)
             outputDoc.paste(true)
             outputDoc.activeChannels = [outputDoc.channels[0], outputDoc.channels[1], outputDoc.channels[2]]
@@ -230,10 +267,10 @@ if (saveOptions != null) {
 preferences.rulerUnits = oldRulerUnits
 preferences.typeUnits = oldTypeUnits
 """
-        
+
+
 def getFreeSocket():
-    '''Get a free socket.'''
-    
+    """Get a free socket."""
     TCP_IP = '127.0.0.1'
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((TCP_IP, 0))
@@ -241,11 +278,15 @@ def getFreeSocket():
     s.listen(1)
     return s, TCP_PORT
 
+
 def waitForPSConfirmation(s, TCP_PORT):
-    '''Method that will be added to a thread that waits for Photoshop connection.'''
-    
+    """
+    Method that will be added to a thread that waits for Photoshop connection.
+
+    :param s: socket
+    """
     BUFFER_SIZE = 1024
-    
+
     conn, addr = s.accept()
     while 1:
         data = conn.recv(BUFFER_SIZE)
@@ -253,45 +294,47 @@ def waitForPSConfirmation(s, TCP_PORT):
             break
         if data == str(TCP_PORT):
             refreshTextures = """string $fileNodes[]  = `ls -type file`;for($f in $fileNodes) {string $attrName = $f + ".fileTextureName";string $fileName = `getAttr $attrName`;setAttr -type "string" $attrName $fileName;}"""
-            cmds.evalDeferred('import maya.mel as mel;mel.eval(\'%s\')' % refreshTextures)  # @UndefinedVariable
-            
+            cmds.evalDeferred('import maya.mel as mel;mel.eval(\'%s\')' % refreshTextures)
+
         #conn.send(data)
     conn.close()
 
-def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath):
-    '''Send information to Photoshop to create texture atlas.'''
-    
+
+def createAtlas(aItems, txtFinalFilename, sizeX, sizeY, photoshopPath, resamplingMode):
+    """Send information to Photoshop to create texture atlas."""
+
     if not os.path.exists(photoshopPath):
-        cmds.confirmDialog(message="Photoshop path does not exist.", button=["ok"])  # @UndefinedVariable
+        cmds.confirmDialog(message = "Photoshop path does not exist.", button = ["ok"])
         return
-    
-    commandList = [txtFinalFilename, sizeX, sizeY]
-    
+
+    resampleMode = ResamplingModeValues.index(resamplingMode) + 1
+
+    commandList = [txtFinalFilename, sizeX, sizeY, resampleMode]
+
     for k in aItems:
-        
         kPosX = int(sizeX * k.posX)
         kPosY = int(sizeY * k.posY)
         kSizeX = int(sizeX * k.sizeX)
         kSizeY = int(sizeY * k.sizeY)
-        
+
         commandList.extend([k.file, kPosX, kPosY, kSizeX, kSizeY])
-    
-    
+
     # Setup thread to wait for Photoshop response - STEP 1
     s, TCP_PORT = getFreeSocket()
     commandList.insert(0, TCP_PORT)
-    
-    t = threading.Thread(target=waitForPSConfirmation, args=(s, TCP_PORT))
+
+    t = threading.Thread(target = waitForPSConfirmation, args = (s, TCP_PORT))
     threads = []
     threads.append(t)
     t.start()
-    
+
     # Send job to Photoshop
     commandString = (','.join(map(str, commandList))).replace("\\", "/")
     PSscriptOutput = PSScript.replace("ITEMLIST", commandString)
-    
-    scriptFile = (os.path.dirname(__file__)+"/EAscript.jsx").replace("/", "\\")
+
+    scriptFile = (os.path.dirname(__file__) + "/EAscript.jsx").replace("/", "\\")
     with open(scriptFile, "w") as script:
+        script.write("/* GENERATED JAVASCRIPT FILE. DO NOT EDIT. */")
         script.write(PSscriptOutput)
-    
+
     subprocess.Popen((photoshopPath, scriptFile))
